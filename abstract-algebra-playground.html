@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abstract Algebra Playground</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a24;
+      --accent-group: #ff6b6b;
+      --accent-ring: #4ecdc4;
+      --accent-category: #ffe66d;
+      --accent-rep: #a78bfa;
+      --text-primary: #f0f0f5;
+      --text-secondary: #8888aa;
+      --border: #2a2a3a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .noise-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.03;
+      z-index: 1000;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 2rem 2rem;
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, transparent 100%);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent-group), var(--accent-ring), var(--accent-category), var(--accent-rep));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .tab:hover {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .tab.active[data-tab="groups"] { background: var(--accent-group); color: #000; border-color: var(--accent-group); }
+    .tab.active[data-tab="rings"] { background: var(--accent-ring); color: #000; border-color: var(--accent-ring); }
+    .tab.active[data-tab="categories"] { background: var(--accent-category); color: #000; border-color: var(--accent-category); }
+    .tab.active[data-tab="representations"] { background: var(--accent-rep); color: #000; border-color: var(--accent-rep); }
+
+    .panel {
+      display: none;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-title .icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .section-desc {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .playground-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .playground-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+    }
+
+    .card h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .visual-container {
+      aspect-ratio: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .visual-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--text-secondary);
+    }
+
+    .btn.primary {
+      background: var(--accent-group);
+      color: #000;
+      border-color: var(--accent-group);
+    }
+
+    .btn.primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .state-display {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+    }
+
+    .state-display .label {
+      color: var(--text-secondary);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .state-display .value {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .cayley-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .cayley-table th,
+    .cayley-table td {
+      border: 1px solid var(--border);
+      padding: 0.5rem;
+      text-align: center;
+    }
+
+    .cayley-table th {
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+    }
+
+    .cayley-table td {
+      background: var(--bg-primary);
+    }
+
+    .cayley-table td.highlight {
+      background: var(--accent-group);
+      color: #000;
+    }
+
+    .history-list {
+      margin-top: 1rem;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 0.7rem;
+    }
+
+    .history-item {
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+    }
+
+    .history-item:last-child { border-bottom: none; }
+
+    .matrix-display {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      width: fit-content;
+      padding: 0.5rem;
+      background: var(--border);
+      margin: 0.5rem 0;
+    }
+
+    .matrix-display span {
+      background: var(--bg-primary);
+      padding: 0.5rem;
+      text-align: center;
+      min-width: 3rem;
+    }
+
+    .torus-wrapper {
+      width: 100%;
+      height: 100%;
+    }
+
+    #torus-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .amidakuji-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .amidakuji-svg line {
+      stroke: var(--text-secondary);
+      stroke-width: 2;
+    }
+
+    .amidakuji-svg line.bridge {
+      stroke: var(--accent-category);
+      stroke-width: 3;
+    }
+
+    .amidakuji-svg circle {
+      fill: var(--accent-category);
+    }
+
+    .amidakuji-svg text {
+      fill: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+    }
+
+    .permutation-display {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: var(--bg-primary);
+      margin-top: 1rem;
+    }
+
+    .perm-arrow {
+      color: var(--accent-category);
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 2px;
+      background: var(--border);
+      padding: 2px;
+    }
+
+    .field-cell {
+      background: var(--bg-primary);
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .field-cell:hover {
+      background: var(--bg-secondary);
+    }
+
+    .field-cell.selected {
+      background: var(--accent-ring);
+      color: #000;
+    }
+
+    .field-cell.result {
+      background: var(--accent-group);
+      color: #000;
+    }
+
+    .operation-display {
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.2rem;
+      background: var(--bg-primary);
+      margin-top: 1rem;
+    }
+
+    .icosahedron-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .rep-info {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+    }
+
+    .rep-info h4 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .concept-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .concept-card h4 {
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent-category);
+    }
+
+    .concept-card p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .slider-container {
+      margin-top: 1rem;
+    }
+
+    .slider-container label {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .slider-container input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-ring);
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+  <div class="noise-overlay"></div>
+  
+  <header>
+    <h1>Abstract Algebra Playground</h1>
+    <p>Interactive exploration of Groups, Rings, Fields, Categories, and Representations through visual motifs</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="groups">Groups</button>
+    <button class="tab" data-tab="rings">Rings & Fields</button>
+    <button class="tab" data-tab="categories">Categories</button>
+    <button class="tab" data-tab="representations">Representations</button>
+  </nav>
+
+  <!-- GROUPS PANEL -->
+  <section class="panel active" id="groups">
+    <h2 class="section-title">
+      <span class="icon" style="background: var(--accent-group)"></span>
+      Group Theory: D₄ Symmetries
+    </h2>
+    <p class="section-desc">
+      The Dihedral Group D₄ consists of 8 symmetries of a square: 4 rotations (r0, r1, r2, r3) and 4 reflections (fh, fv, fd, fd'). 
+      Click operations to transform the square and observe non-abelian behavior (order matters!).
+    </p>
+
+    <div class="playground-grid">
+      <div class="card">
+        <h3>Square Visualization</h3>
+        <div class="visual-container" id="square-visual"></div>
+        <div class="controls">
+          <button class="btn primary" onclick="applyD4('r1')">Rotate 90°</button>
+          <button class="btn" onclick="applyD4('r2')">Rotate 180°</button>
+          <button class="btn" onclick="applyD4('r3')">Rotate 270°</button>
+          <button class="btn" onclick="applyD4('fh')">Flip H</button>
+          <button class="btn" onclick="applyD4('fv')">Flip V</button>
+          <button class="btn" onclick="applyD4('fd')">Flip Diag</button>
+          <button class="btn" onclick="applyD4('fd2')">Flip Anti-Diag</button>
+          <button class="btn" onclick="resetD4()">Reset</button>
+        </div>
+        <div class="state-display">
+          <div class="label">Current State (Vertex Positions)</div>
+          <div class="value" id="d4-state">[0, 1, 2, 3]</div>
+        </div>
+        <div class="history-list" id="d4-history"></div>
+      </div>
+
+      <div class="card">
+        <h3>Cayley Table (Partial)</h3>
+        <p style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Row ∘ Column = Result. Notice: r1 ∘ fv ≠ fv ∘ r1 (non-abelian!)
+        </p>
+        <table class="cayley-table" id="cayley-table">
+          <thead>
+            <tr>
+              <th>∘</th><th>e</th><th>r1</th><th>r2</th><th>r3</th><th>fh</th><th>fv</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="concept-card">
+          <h4>Key Insight</h4>
+          <p>A group is a set with an operation that is closed, associative, has an identity, and every element has an inverse. D₄ demonstrates that groups need not be commutative (abelian).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RINGS & FIELDS PANEL -->
+  <section class="panel" id="rings">
+    <h2 class="section-title">
+      <span class="icon" style="background: var(--accent-ring)"></span>
+      Rings & Fields: Modular Arithmetic
+    </h2>
+    <p class="section-desc">
+      Explore ℤₙ (integers mod n) which forms a Ring, and ℤₚ (p prime) which forms a Field. 
+      Click two elements to see their sum and product. The torus visualizes ℤₘ × ℤₙ.
+    </p>
+
+    <div class="playground-grid">
+      <div class="card">
+        <h3>ℤ₇ Field (Prime Modulus)</h3>
+        <div class="field-grid" id="field-grid-7" style="grid-template-columns: repeat(7, 1fr);"></div>
+        <div class="operation-display" id="field-operation">Select two elements</div>
+        <div class="controls">
+          <button class="btn" onclick="setFieldOp('add')">+ Addition</button>
+          <button class="btn primary" onclick="setFieldOp('mul')">× Multiplication</button>
+          <button class="btn" onclick="clearFieldSelection()">Clear</button>
+        </div>
+        <div class="concept-card">
+          <h4>Why ℤ₇ is a Field</h4>
+          <p>7 is prime, so every non-zero element has a multiplicative inverse. This makes division possible (except by 0), fulfilling all field axioms.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Torus: ℤ₅ × ℤ₅ Visualization</h3>
+        <div class="visual-container torus-wrapper" id="torus-container"></div>
+        <div class="slider-container">
+          <label>Rotation Speed</label>
+          <input type="range" id="torus-speed" min="0" max="100" value="30">
+        </div>
+        <div class="concept-card">
+          <h4>Ring Structure</h4>
+          <p>Walking around the "hole" is one additive operation (mod 5), walking around the "tube" is another. Together they form the product ring ℤ₅ × ℤ₅.</p>
+        </div>
+      </div>
+
+      <div class="card full-width">
+        <h3>Multiplication Table for ℤ₇*</h3>
+        <div id="mult-table-container"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES PANEL -->
+  <section class="panel" id="categories">
+    <h2 class="section-title">
+      <span class="icon" style="background: var(--accent-category)"></span>
+      Category Theory: Amidakuji
+    </h2>
+    <p class="section-desc">
+      The Japanese Amidakuji (ghost leg lottery) visualizes morphisms and composition. 
+      Vertical lines are Objects, horizontal bridges are Morphisms. Composition = stacking.
+    </p>
+
+    <div class="playground-grid">
+      <div class="card">
+        <h3>Amidakuji Diagram</h3>
+        <div class="visual-container" id="amidakuji-container">
+          <svg class="amidakuji-svg" id="amidakuji-svg" viewBox="0 0 400 400"></svg>
+        </div>
+        <div class="controls">
+          <button class="btn primary" onclick="randomizeAmidakuji()">Randomize Bridges</button>
+          <button class="btn" onclick="animateAmidakuji()">Animate Path</button>
+          <button class="btn" onclick="composeAmidakuji()">Compose (Stack)</button>
+        </div>
+        <div class="permutation-display">
+          <span>Input: [1,2,3,4,5]</span>
+          <span class="perm-arrow">→</span>
+          <span id="amidakuji-output">Output: [1,2,3,4,5]</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Categorical View</h3>
+        <div class="concept-card">
+          <h4>Objects & Morphisms</h4>
+          <p>Each vertical line represents an Object in the category. Horizontal bridges are Morphisms (transpositions). The entire diagram is a composed morphism from top to bottom.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Composition</h4>
+          <p>Stacking two Amidakuji diagrams composes their permutations: (f ∘ g)(x) = f(g(x)). This mirrors function composition in Set theory.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Groupoid Structure</h4>
+          <p>If every bridge can be traversed both ways (inverse exists), we have a Groupoid. Every morphism is invertible.</p>
+        </div>
+        <div class="state-display" style="margin-top: 1rem;">
+          <div class="label">Current Permutation (Cycle Notation)</div>
+          <div class="value" id="cycle-notation">(1)(2)(3)(4)(5)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPRESENTATIONS PANEL -->
+  <section class="panel" id="representations">
+    <h2 class="section-title">
+      <span class="icon" style="background: var(--accent-rep)"></span>
+      Representation Theory: 3D Symmetries
+    </h2>
+    <p class="section-desc">
+      A representation maps abstract group elements to matrices that transform space. 
+      The icosahedron has 60 rotational symmetries (A₅). Watch how abstract operations become concrete transformations.
+    </p>
+
+    <div class="playground-grid">
+      <div class="card">
+        <h3>Icosahedron (A₅ Symmetries)</h3>
+        <div class="visual-container icosahedron-container" id="icosahedron-container"></div>
+        <div class="controls">
+          <button class="btn primary" onclick="rotateIcosahedron('vertex')">Rotate (5-fold)</button>
+          <button class="btn" onclick="rotateIcosahedron('edge')">Rotate (2-fold)</button>
+          <button class="btn" onclick="rotateIcosahedron('face')">Rotate (3-fold)</button>
+          <button class="btn" onclick="resetIcosahedron()">Reset</button>
+        </div>
+        <div class="rep-info">
+          <h4>Current Rotation Matrix</h4>
+          <div class="matrix-display" id="rotation-matrix">
+            <span>1</span><span>0</span>
+            <span>0</span><span>1</span>
+          </div>
+          <p style="font-size: 0.7rem; color: var(--text-secondary);">
+            This 3×3 matrix is the "representation" of the abstract rotation.
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>D₄ as 2×2 Matrices</h3>
+        <div class="concept-card">
+          <h4>Rotation r1 (90°)</h4>
+          <div class="matrix-display">
+            <span>0</span><span>-1</span>
+            <span>1</span><span>0</span>
+          </div>
+        </div>
+        <div class="concept-card">
+          <h4>Reflection fv (Vertical)</h4>
+          <div class="matrix-display">
+            <span>-1</span><span>0</span>
+            <span>0</span><span>1</span>
+          </div>
+        </div>
+        <div class="concept-card">
+          <h4>Key Insight</h4>
+          <p>Representations turn abstract algebra into linear algebra. Group operations become matrix multiplication. This is the bridge between pure math and physics (quantum mechanics uses this heavily).</p>
+        </div>
+        <div class="visual-container" id="matrix-transform-visual" style="margin-top: 1rem;"></div>
+        <div class="controls">
+          <button class="btn" onclick="applyMatrixTransform('r1')">Apply r1</button>
+          <button class="btn" onclick="applyMatrixTransform('fv')">Apply fv</button>
+          <button class="btn" onclick="resetMatrixTransform()">Reset</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ==================== TAB NAVIGATION ====================
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ==================== D4 GROUP LOGIC ====================
+    let d4State = [0, 1, 2, 3];
+    let d4History = [];
+
+    const D4_Group = {
+      e:   s => [...s],
+      r1:  s => [s[3], s[0], s[1], s[2]],
+      r2:  s => [s[2], s[3], s[0], s[1]],
+      r3:  s => [s[1], s[2], s[3], s[0]],
+      fh:  s => [s[3], s[2], s[1], s[0]],
+      fv:  s => [s[1], s[0], s[3], s[2]],
+      fd:  s => [s[0], s[3], s[2], s[1]],
+      fd2: s => [s[2], s[1], s[0], s[3]]
+    };
+
+    const D4_Names = {
+      e: 'Identity', r1: 'Rotate 90°', r2: 'Rotate 180°', r3: 'Rotate 270°',
+      fh: 'Flip Horizontal', fv: 'Flip Vertical', fd: 'Flip Diagonal', fd2: 'Flip Anti-Diag'
+    };
+
+    function applyD4(op) {
+      d4State = D4_Group[op](d4State);
+      d4History.unshift({ op, result: [...d4State] });
+      if (d4History.length > 10) d4History.pop();
+      updateD4Display();
+      drawSquare();
+    }
+
+    function resetD4() {
+      d4State = [0, 1, 2, 3];
+      d4History = [];
+      updateD4Display();
+      drawSquare();
+    }
+
+    function updateD4Display() {
+      document.getElementById('d4-state').textContent = `[${d4State.join(', ')}]`;
+      const historyEl = document.getElementById('d4-history');
+      historyEl.innerHTML = d4History.map(h => 
+        `<div class="history-item"><span>${D4_Names[h.op]}</span><span>[${h.result.join(',')}]</span></div>`
+      ).join('');
+    }
+
+    // Square Canvas Drawing
+    const squareCanvas = document.createElement('canvas');
+    const squareCtx = squareCanvas.getContext('2d');
+    document.getElementById('square-visual').appendChild(squareCanvas);
+
+    function resizeSquareCanvas() {
+      const container = document.getElementById('square-visual');
+      squareCanvas.width = container.clientWidth;
+      squareCanvas.height = container.clientHeight;
+      drawSquare();
+    }
+
+    function drawSquare() {
+      const w = squareCanvas.width;
+      const h = squareCanvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const size = Math.min(w, h) * 0.35;
+
+      squareCtx.fillStyle = '#12121a';
+      squareCtx.fillRect(0, 0, w, h);
+
+      const baseVertices = [
+        [-1, -1], [1, -1], [1, 1], [-1, 1]
+      ];
+
+      const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a78bfa'];
+      const labels = ['A', 'B', 'C', 'D'];
+
+      // Draw edges
+      squareCtx.strokeStyle = '#4a4a5a';
+      squareCtx.lineWidth = 2;
+      squareCtx.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const v1 = baseVertices[d4State[i]];
+        const v2 = baseVertices[d4State[(i + 1) % 4]];
+        const x1 = cx + v1[0] * size;
+        const y1 = cy + v1[1] * size;
+        const x2 = cx + v2[0] * size;
+        const y2 = cy + v2[1] * size;
+        if (i === 0) squareCtx.moveTo(x1, y1);
+        squareCtx.lineTo(x2, y2);
+      }
+      squareCtx.closePath();
+      squareCtx.stroke();
+
+      // Draw fill
+      squareCtx.fillStyle = 'rgba(255, 107, 107, 0.1)';
+      squareCtx.fill();
+
+      // Draw vertices
+      for (let i = 0; i < 4; i++) {
+        const v = baseVertices[d4State[i]];
+        const x = cx + v[0] * size;
+        const y = cy + v[1] * size;
+
+        squareCtx.beginPath();
+        squareCtx.arc(x, y, 20, 0, Math.PI * 2);
+        squareCtx.fillStyle = colors[i];
+        squareCtx.fill();
+
+        squareCtx.fillStyle = '#000';
+        squareCtx.font = 'bold 14px JetBrains Mono';
+        squareCtx.textAlign = 'center';
+        squareCtx.textBaseline = 'middle';
+        squareCtx.fillText(labels[i], x, y);
+      }
+
+      // Draw position labels
+      squareCtx.fillStyle = '#666';
+      squareCtx.font = '12px JetBrains Mono';
+      const posLabels = ['0', '1', '2', '3'];
+      for (let i = 0; i < 4; i++) {
+        const v = baseVertices[i];
+        const x = cx + v[0] * (size + 35);
+        const y = cy + v[1] * (size + 35);
+        squareCtx.fillText(posLabels[i], x, y);
+      }
+    }
+
+    // Cayley Table
+    function buildCayleyTable() {
+      const elements = ['e', 'r1', 'r2', 'r3', 'fh', 'fv'];
+      const tbody = document.querySelector('#cayley-table tbody');
+      
+      function compose(a, b) {
+        const state = D4_Group[b]([0, 1, 2, 3]);
+        const result = D4_Group[a](state);
+        for (const [name, fn] of Object.entries(D4_Group)) {
+          if (JSON.stringify(fn([0, 1, 2, 3])) === JSON.stringify(result)) {
+            return name;
+          }
+        }
+        return '?';
+      }
+
+      elements.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<th>${row}</th>` + elements.map(col => 
+          `<td>${compose(row, col)}</td>`
+        ).join('');
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ==================== RINGS & FIELDS ====================
+    let fieldSelection = [];
+    let fieldOp = 'mul';
+    const fieldModulus = 7;
+
+    function initFieldGrid() {
+      const grid = document.getElementById('field-grid-7');
+      for (let i = 0; i < fieldModulus; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'field-cell';
+        cell.textContent = i;
+        cell.dataset.value = i;
+        cell.addEventListener('click', () => selectFieldElement(i, cell));
+        grid.appendChild(cell);
+      }
+    }
+
+    function selectFieldElement(val, cell) {
+      if (fieldSelection.length < 2) {
+        fieldSelection.push(val);
+        cell.classList.add('selected');
+      }
+      if (fieldSelection.length === 2) {
+        computeFieldOp();
+      }
+    }
+
+    function computeFieldOp() {
+      const [a, b] = fieldSelection;
+      let result;
+      if (fieldOp === 'add') {
+        result = (a + b) % fieldModulus;
+      } else {
+        result = (a * b) % fieldModulus;
+      }
+      const opSymbol = fieldOp === 'add' ? '+' : '×';
+      document.getElementById('field-operation').innerHTML = 
+        `${a} ${opSymbol} ${b} ≡ <strong>${result}</strong> (mod ${fieldModulus})`;
+      
+      document.querySelectorAll('.field-cell').forEach(c => {
+        if (parseInt(c.dataset.value) === result) {
+          c.classList.add('result');
+        }
+      });
+    }
+
+    function setFieldOp(op) {
+      fieldOp = op;
+      clearFieldSelection();
+    }
+
+    function clearFieldSelection() {
+      fieldSelection = [];
+      document.querySelectorAll('.field-cell').forEach(c => {
+        c.classList.remove('selected', 'result');
+      });
+      document.getElementById('field-operation').textContent = 'Select two elements';
+    }
+
+    function buildMultTable() {
+      const container = document.getElementById('mult-table-container');
+      let html = '<table class="cayley-table"><thead><tr><th>×</th>';
+      for (let i = 1; i < fieldModulus; i++) html += `<th>${i}</th>`;
+      html += '</tr></thead><tbody>';
+      for (let i = 1; i < fieldModulus; i++) {
+        html += `<tr><th>${i}</th>`;
+        for (let j = 1; j < fieldModulus; j++) {
+          html += `<td>${(i * j) % fieldModulus}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    // Torus with Three.js
+    let torusScene, torusCamera, torusRenderer, torusMesh;
+
+    function initTorus() {
+      const container = document.getElementById('torus-container');
+      const w = container.clientWidth || 300;
+      const h = container.clientHeight || 300;
+
+      torusScene = new THREE.Scene();
+      torusCamera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000);
+      torusCamera.position.z = 4;
+
+      torusRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      torusRenderer.setSize(w, h);
+      torusRenderer.setClearColor(0x12121a);
+      container.appendChild(torusRenderer.domElement);
+
+      // Create torus with grid
+      const torusGeom = new THREE.TorusGeometry(1.2, 0.5, 5, 5);
+      const torusMat = new THREE.MeshBasicMaterial({ 
+        color: 0x4ecdc4, 
+        wireframe: true 
+      });
+      torusMesh = new THREE.Mesh(torusGeom, torusMat);
+      torusScene.add(torusMesh);
+
+      // Add points for Z5 x Z5
+      const pointGeom = new THREE.SphereGeometry(0.05, 8, 8);
+      const pointMat = new THREE.MeshBasicMaterial({ color: 0xffe66d });
+      
+      for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 5; j++) {
+          const u = (i / 5) * Math.PI * 2;
+          const v = (j / 5) * Math.PI * 2;
+          const x = (1.2 + 0.5 * Math.cos(v)) * Math.cos(u);
+          const y = (1.2 + 0.5 * Math.cos(v)) * Math.sin(u);
+          const z = 0.5 * Math.sin(v);
+          const point = new THREE.Mesh(pointGeom, pointMat);
+          point.position.set(x, y, z);
+          torusScene.add(point);
+        }
+      }
+
+      animateTorus();
+    }
+
+    function animateTorus() {
+      requestAnimationFrame(animateTorus);
+      const speed = document.getElementById('torus-speed').value / 1000;
+      torusMesh.rotation.x += speed;
+      torusMesh.rotation.y += speed * 0.7;
+      torusScene.children.forEach(child => {
+        if (child !== torusMesh) {
+          child.rotation.x = torusMesh.rotation.x;
+          child.rotation.y = torusMesh.rotation.y;
+        }
+      });
+      torusRenderer.render(torusScene, torusCamera);
+    }
+
+    // ==================== CATEGORIES (AMIDAKUJI) ====================
+    let amidakujiBridges = [];
+    const numLines = 5;
+    const amidakujiHeight = 350;
+    const amidakujiLineSpacing = 70;
+
+    function initAmidakuji() {
+      randomizeAmidakuji();
+    }
+
+    function randomizeAmidakuji() {
+      amidakujiBridges = [];
+      const levels = 6;
+      for (let level = 0; level < levels; level++) {
+        const y = 50 + (level * (amidakujiHeight - 100) / levels);
+        const usedLines = new Set();
+        for (let i = 0; i < numLines - 1; i++) {
+          if (!usedLines.has(i) && Math.random() < 0.4) {
+            amidakujiBridges.push({ from: i, to: i + 1, y });
+            usedLines.add(i);
+            usedLines.add(i + 1);
+          }
+        }
+      }
+      drawAmidakuji();
+      computeAmidakujiPermutation();
+    }
+
+    function drawAmidakuji() {
+      const svg = document.getElementById('amidakuji-svg');
+      const startX = 60;
+      
+      let html = '';
+      
+      // Vertical lines
+      for (let i = 0; i < numLines; i++) {
+        const x = startX + i * amidakujiLineSpacing;
+        html += `<line x1="${x}" y1="30" x2="${x}" y2="${amidakujiHeight}" />`;
+        html += `<text x="${x}" y="20" text-anchor="middle">${i + 1}</text>`;
+        html += `<circle cx="${x}" cy="30" r="6" />`;
+      }
+      
+      // Bridges
+      amidakujiBridges.forEach(b => {
+        const x1 = startX + b.from * amidakujiLineSpacing;
+        const x2 = startX + b.to * amidakujiLineSpacing;
+        html += `<line class="bridge" x1="${x1}" y1="${b.y}" x2="${x2}" y2="${b.y}" />`;
+      });
+      
+      svg.innerHTML = html;
+    }
+
+    function computeAmidakujiPermutation() {
+      const perm = [1, 2, 3, 4, 5];
+      const result = [];
+      
+      for (let start = 0; start < numLines; start++) {
+        let pos = start;
+        const sortedBridges = [...amidakujiBridges].sort((a, b) => a.y - b.y);
+        
+        for (const bridge of sortedBridges) {
+          if (bridge.from === pos) pos = bridge.to;
+          else if (bridge.to === pos) pos = bridge.from;
+        }
+        result[pos] = perm[start];
+      }
+      
+      document.getElementById('amidakuji-output').textContent = `Output: [${result.join(',')}]`;
+      
+      // Compute cycle notation
+      const visited = new Set();
+      const cycles = [];
+      for (let i = 0; i < numLines; i++) {
+        if (visited.has(i)) continue;
+        const cycle = [];
+        let j = i;
+        while (!visited.has(j)) {
+          visited.add(j);
+          cycle.push(j + 1);
+          j = result.indexOf(perm[j]);
+        }
+        if (cycle.length > 0) cycles.push(`(${cycle.join('')})`);
+      }
+      document.getElementById('cycle-notation').textContent = cycles.join('') || '(identity)';
+    }
+
+    function composeAmidakuji() {
+      const newBridges = [];
+      const offset = amidakujiHeight - 80;
+      amidakujiBridges.forEach(b => {
+        newBridges.push({ ...b });
+        newBridges.push({ from: b.from, to: b.to, y: b.y + offset });
+      });
+      amidakujiBridges = newBridges.filter(b => b.y < amidakujiHeight);
+      drawAmidakuji();
+      computeAmidakujiPermutation();
+    }
+
+    function animateAmidakuji() {
+      // Simple highlight animation
+      const svg = document.getElementById('amidakuji-svg');
+      const bridges = svg.querySelectorAll('.bridge');
+      bridges.forEach((b, i) => {
+        setTimeout(() => {
+          b.style.stroke = '#ff6b6b';
+          setTimeout(() => b.style.stroke = '', 300);
+        }, i * 200);
+      });
+    }
+
+    // ==================== REPRESENTATIONS ====================
+    let icoScene, icoCamera, icoRenderer, icoMesh;
+    let currentRotation = new THREE.Matrix4();
+
+    function initIcosahedron() {
+      const container = document.getElementById('icosahedron-container');
+      const w = container.clientWidth || 300;
+      const h = container.clientHeight || 300;
+
+      icoScene = new THREE.Scene();
+      icoCamera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000);
+      icoCamera.position.z = 3;
+
+      icoRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      icoRenderer.setSize(w, h);
+      icoRenderer.setClearColor(0x12121a);
+      container.appendChild(icoRenderer.domElement);
+
+      const icoGeom = new THREE.IcosahedronGeometry(1, 0);
+      const icoMat = new THREE.MeshBasicMaterial({ 
+        color: 0xa78bfa, 
+        wireframe: true 
+      });
+      icoMesh = new THREE.Mesh(icoGeom, icoMat);
+      icoScene.add(icoMesh);
+
+      // Add vertices as points
+      const pointGeom = new THREE.SphereGeometry(0.05, 8, 8);
+      const pointMat = new THREE.MeshBasicMaterial({ color: 0xffe66d });
+      const positions = icoGeom.attributes.position;
+      const added = new Set();
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i).toFixed(2);
+        const y = positions.getY(i).toFixed(2);
+        const z = positions.getZ(i).toFixed(2);
+        const key = `${x},${y},${z}`;
+        if (!added.has(key)) {
+          added.add(key);
+          const point = new THREE.Mesh(pointGeom, pointMat);
+          point.position.set(parseFloat(x), parseFloat(y), parseFloat(z));
+          icoMesh.add(point);
+        }
+      }
+
+      animateIcosahedron();
+    }
+
+    function animateIcosahedron() {
+      requestAnimationFrame(animateIcosahedron);
+      icoMesh.rotation.y += 0.003;
+      icoRenderer.render(icoScene, icoCamera);
+    }
+
+    function rotateIcosahedron(type) {
+      let angle, axis;
+      if (type === 'vertex') {
+        angle = (2 * Math.PI) / 5;
+        axis = new THREE.Vector3(0, 1, 0);
+      } else if (type === 'edge') {
+        angle = Math.PI;
+        axis = new THREE.Vector3(1, 0, 0);
+      } else {
+        angle = (2 * Math.PI) / 3;
+        axis = new THREE.Vector3(1, 1, 1).normalize();
+      }
+      
+      icoMesh.rotateOnAxis(axis, angle);
+      updateRotationMatrix(angle, axis);
+    }
+
+    function resetIcosahedron() {
+      icoMesh.rotation.set(0, 0, 0);
+      currentRotation.identity();
+      updateRotationMatrixDisplay([[1,0,0],[0,1,0],[0,0,1]]);
+    }
+
+    function updateRotationMatrix(angle, axis) {
+      const c = Math.cos(angle);
+      const s = Math.sin(angle);
+      const t = 1 - c;
+      const x = axis.x, y = axis.y, z = axis.z;
+      
+      const m = [
+        [t*x*x + c, t*x*y - s*z, t*x*z + s*y],
+        [t*x*y + s*z, t*y*y + c, t*y*z - s*x],
+        [t*x*z - s*y, t*y*z + s*x, t*z*z + c]
+      ];
+      
+      updateRotationMatrixDisplay(m);
+    }
+
+    function updateRotationMatrixDisplay(m) {
+      const container = document.getElementById('rotation-matrix');
+      container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+      container.innerHTML = m.flat().map(v => 
+        `<span>${v.toFixed(2)}</span>`
+      ).join('');
+    }
+
+    // Matrix Transform 2D Visual
+    const mtCanvas = document.createElement('canvas');
+    const mtCtx = mtCanvas.getContext('2d');
+    let mtPoints = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+
+    function initMatrixTransform() {
+      const container = document.getElementById('matrix-transform-visual');
+      container.appendChild(mtCanvas);
+      resizeMatrixCanvas();
+    }
+
+    function resizeMatrixCanvas() {
+      const container = document.getElementById('matrix-transform-visual');
+      if (!container) return;
+      mtCanvas.width = container.clientWidth;
+      mtCanvas.height = container.clientHeight;
+      drawMatrixTransform();
+    }
+
+    const D4_Matrices = {
+      r1: [[0, -1], [1, 0]],
+      fv: [[-1, 0], [0, 1]]
+    };
+
+    function applyMatrixTransform(op) {
+      const m = D4_Matrices[op];
+      mtPoints = mtPoints.map(([x, y]) => [
+        m[0][0] * x + m[0][1] * y,
+        m[1][0] * x + m[1][1] * y
+      ]);
+      drawMatrixTransform();
+    }
+
+    function resetMatrixTransform() {
+      mtPoints = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+      drawMatrixTransform();
+    }
+
+    function drawMatrixTransform() {
+      const w = mtCanvas.width;
+      const h = mtCanvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const scale = Math.min(w, h) * 0.3;
+
+      mtCtx.fillStyle = '#12121a';
+      mtCtx.fillRect(0, 0, w, h);
+
+      // Grid
+      mtCtx.strokeStyle = '#2a2a3a';
+      mtCtx.lineWidth = 1;
+      for (let i = -2; i <= 2; i++) {
+        mtCtx.beginPath();
+        mtCtx.moveTo(cx + i * scale, 0);
+        mtCtx.lineTo(cx + i * scale, h);
+        mtCtx.stroke();
+        mtCtx.beginPath();
+        mtCtx.moveTo(0, cy + i * scale);
+        mtCtx.lineTo(w, cy + i * scale);
+        mtCtx.stroke();
+      }
+
+      // Axes
+      mtCtx.strokeStyle = '#4a4a5a';
+      mtCtx.lineWidth = 2;
+      mtCtx.beginPath();
+      mtCtx.moveTo(0, cy);
+      mtCtx.lineTo(w, cy);
+      mtCtx.moveTo(cx, 0);
+      mtCtx.lineTo(cx, h);
+      mtCtx.stroke();
+
+      // Shape
+      mtCtx.beginPath();
+      mtPoints.forEach(([x, y], i) => {
+        const px = cx + x * scale;
+        const py = cy - y * scale;
+        if (i === 0) mtCtx.moveTo(px, py);
+        else mtCtx.lineTo(px, py);
+      });
+      mtCtx.closePath();
+      mtCtx.strokeStyle = '#a78bfa';
+      mtCtx.lineWidth = 2;
+      mtCtx.stroke();
+      mtCtx.fillStyle = 'rgba(167, 139, 250, 0.2)';
+      mtCtx.fill();
+
+      // Points
+      const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a78bfa'];
+      mtPoints.forEach(([x, y], i) => {
+        const px = cx + x * scale;
+        const py = cy - y * scale;
+        mtCtx.beginPath();
+        mtCtx.arc(px, py, 8, 0, Math.PI * 2);
+        mtCtx.fillStyle = colors[i];
+        mtCtx.fill();
+      });
+    }
+
+    // ==================== INITIALIZATION ====================
+    window.addEventListener('load', () => {
+      resizeSquareCanvas();
+      buildCayleyTable();
+      initFieldGrid();
+      buildMultTable();
+      initTorus();
+      initAmidakuji();
+      initIcosahedron();
+      initMatrixTransform();
+    });
+
+    window.addEventListener('resize', () => {
+      resizeSquareCanvas();
+      resizeMatrixCanvas();
+    });
+  </script>
+</body>
+</html>
