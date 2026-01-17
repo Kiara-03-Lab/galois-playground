@@ -70,7 +70,7 @@ Strategic use of color to create visual hierarchy and guide user attention:
 ## Typography
 
 ### Font Family
-- Primary: `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', sans-serif`
+- Primary: `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif`
 - Alternative: `'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif`
 
 ### Type Scale
@@ -152,12 +152,12 @@ Subtle shadows for depth and hierarchy:
 ### Color Adaptations
 - **Background colors**: White `#FFFFFF` ↔ Gray-900 `#111827`
 - **Text colors**: Gray-900 `#111827` ↔ White `#FFFFFF`
-- **Borders**: Gray-300 `#D1D5DB` → `#374151` (Gray-700)
-- **Red** → `#EF4444` (lighter red for better visibility on dark backgrounds)
-- **Orange** → `#FB923C` (lighter orange)
-- **Green** → `#22C55E` (lighter green)
-- **Blue** → `#3B82F6` (lighter blue)
-- **Shadows** → reduce opacity or remove
+- **Borders**: Gray-300 `#D1D5DB` ↔ Gray-700 `#374151`
+- **Red**: `#DC2626` ↔ `#EF4444` (lighter for dark backgrounds)
+- **Orange**: `#F97316` ↔ `#FB923C` (lighter)
+- **Green**: `#16A34A` ↔ `#22C55E` (lighter)
+- **Blue**: `#2563EB` ↔ `#3B82F6` (lighter)
+- **Shadows** ↔ reduced opacity or removed
 - **Test contrast again** to ensure readability
 
 ## Hard Rules
