@@ -70,7 +70,8 @@ Strategic use of color to create visual hierarchy and guide user attention:
 ## Typography
 
 ### Font Family
-- System font stack or specify: Inter, Noto Sans
+- Primary: `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', sans-serif`
+- Alternative: `'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif`
 
 ### Type Scale
 - **H1**: `2rem` (32px) / bold
@@ -137,8 +138,8 @@ Subtle shadows for depth and hierarchy:
 ## Accessibility
 
 ### Contrast Requirements
-- **Normal text**: 4.5:1 minimum contrast ratio
-- **Large text/UI**: 3:1 minimum contrast ratio
+- **Normal text**: 4.5:1 minimum contrast ratio (text below 18pt or 14pt bold)
+- **Large text/UI**: 3:1 minimum contrast ratio (18pt+ or 14pt+ bold text, UI components)
 
 ### Best Practices
 - **Never use color alone for meaning** — always add text/icon
@@ -149,9 +150,14 @@ Subtle shadows for depth and hierarchy:
 ## Dark Mode (if applicable)
 
 ### Color Adaptations
-- **Swap White ↔ Gray-900**
-- **Reduce Red/Orange intensity** (use lighter variants)
-- **Shadows** → subtle or remove
+- **Background colors**: White `#FFFFFF` ↔ Gray-900 `#111827`
+- **Text colors**: Gray-900 `#111827` ↔ White `#FFFFFF`
+- **Borders**: Gray-300 `#D1D5DB` → `#374151` (Gray-700)
+- **Red** → `#EF4444` (lighter red for better visibility on dark backgrounds)
+- **Orange** → `#FB923C` (lighter orange)
+- **Green** → `#22C55E` (lighter green)
+- **Blue** → `#3B82F6` (lighter blue)
+- **Shadows** → reduce opacity or remove
 - **Test contrast again** to ensure readability
 
 ## Hard Rules
