@@ -5,19 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Abstract Algebra Playground</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-primary: #0a0a0f;
-      --bg-secondary: #12121a;
-      --bg-card: #1a1a24;
-      --accent-group: #ff6b6b;
-      --accent-ring: #4ecdc4;
-      --accent-category: #ffe66d;
-      --accent-rep: #a78bfa;
-      --text-primary: #f0f0f5;
-      --text-secondary: #8888aa;
-      --border: #2a2a3a;
+      /* Design System Colors */
+      --white: #FFFFFF;
+      --gray-100: #F5F5F5;
+      --gray-300: #D1D5DB;
+      --gray-500: #6B7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --red: #DC2626;
+      --orange: #F97316;
+      --green: #16A34A;
+      --blue: #2563EB;
+      
+      /* Semantic tokens */
+      --bg-primary: var(--white);
+      --bg-secondary: var(--gray-100);
+      --bg-card: var(--white);
+      --text-primary: var(--gray-900);
+      --text-secondary: var(--gray-700);
+      --text-muted: var(--gray-500);
+      --border: var(--gray-300);
+      
+      /* Spacing scale (4px base) */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-2xl: 48px;
+      
+      /* Border radius */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
     }
 
     * {
@@ -27,7 +51,7 @@
     }
 
     body {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
@@ -35,75 +59,82 @@
     }
 
     .noise-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      opacity: 0.03;
-      z-index: 1000;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+      display: none; /* Removed per design system - keep backgrounds neutral */
     }
 
     header {
       text-align: center;
-      padding: 3rem 2rem 2rem;
-      background: linear-gradient(180deg, var(--bg-secondary) 0%, transparent 100%);
+      padding: var(--space-2xl) var(--space-lg) var(--space-xl);
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border);
     }
 
     h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-family: 'Inter', sans-serif;
+      font-size: 2rem; /* 32px - H1 from design system */
+      font-weight: 700;
       letter-spacing: -0.02em;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--accent-group), var(--accent-ring), var(--accent-category), var(--accent-rep));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      margin-bottom: var(--space-sm);
+      color: var(--text-primary);
     }
 
     header p {
       color: var(--text-secondary);
-      font-size: 0.85rem;
+      font-size: 0.875rem; /* 14px - secondary text from design system */
       max-width: 600px;
       margin: 0 auto;
+      line-height: 1.5;
     }
 
     .tabs {
       display: flex;
       justify-content: center;
-      gap: 0.5rem;
-      padding: 1rem;
+      gap: var(--space-sm);
+      padding: var(--space-lg) var(--space-md);
       flex-wrap: wrap;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
     }
 
     .tab {
-      padding: 0.75rem 1.5rem;
+      padding: var(--space-sm) var(--space-lg);
       border: 1px solid var(--border);
-      background: transparent;
+      border-radius: var(--radius-sm);
+      background: var(--white);
       color: var(--text-secondary);
       font-family: inherit;
-      font-size: 0.8rem;
+      font-size: 0.875rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
     }
 
     .tab:hover {
-      background: var(--bg-card);
+      background: var(--gray-100);
       color: var(--text-primary);
+      border-color: var(--gray-500);
     }
 
-    .tab.active[data-tab="groups"] { background: var(--accent-group); color: #000; border-color: var(--accent-group); }
-    .tab.active[data-tab="rings"] { background: var(--accent-ring); color: #000; border-color: var(--accent-ring); }
-    .tab.active[data-tab="categories"] { background: var(--accent-category); color: #000; border-color: var(--accent-category); }
-    .tab.active[data-tab="representations"] { background: var(--accent-rep); color: #000; border-color: var(--accent-rep); }
+    .tab:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--blue);
+      border-color: var(--blue);
+    }
+
+    /* Active tabs - neutral with colored border indicator */
+    .tab.active {
+      background: var(--white);
+      color: var(--text-primary);
+      border-color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
 
     .panel {
       display: none;
-      padding: 2rem;
+      padding: var(--space-2xl) var(--space-lg);
       max-width: 1400px;
       margin: 0 auto;
       animation: fadeIn 0.4s ease;
@@ -117,23 +148,26 @@
     }
 
     .section-title {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.5rem; /* 24px - H2 from design system */
+      font-weight: 600;
+      margin-bottom: var(--space-sm);
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: var(--space-sm);
+      color: var(--text-primary);
     }
 
     .section-title .icon {
       width: 8px;
       height: 8px;
       border-radius: 50%;
+      background: var(--red) !important; /* Accent indicator */
     }
 
     .section-desc {
       color: var(--text-secondary);
-      font-size: 0.8rem;
-      margin-bottom: 2rem;
+      font-size: 0.875rem; /* 14px - secondary text */
+      margin-bottom: var(--space-xl);
       line-height: 1.6;
     }
 
@@ -145,26 +179,38 @@
 
     @media (max-width: 900px) {
       .playground-grid { grid-template-columns: 1fr; }
+      
+      header {
+        padding: var(--space-xl) var(--space-md);
+      }
+      
+      .panel {
+        padding: var(--space-xl) var(--space-md);
+      }
     }
 
     .card {
-      background: var(--bg-card);
+      background: var(--white);
       border: 1px solid var(--border);
-      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
 
     .card h3 {
       font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.1em;
       color: var(--text-secondary);
-      margin-bottom: 1rem;
+      margin-bottom: var(--space-md);
+      font-weight: 600;
     }
 
     .visual-container {
       aspect-ratio: 1;
-      background: var(--bg-secondary);
+      background: var(--gray-100);
       border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
       position: relative;
       overflow: hidden;
     }
@@ -177,98 +223,148 @@
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 1rem;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
     }
 
     .btn {
-      padding: 0.6rem 1rem;
+      padding: var(--space-sm) var(--space-md);
       border: 1px solid var(--border);
-      background: transparent;
+      border-radius: var(--radius-sm);
+      background: var(--white);
       color: var(--text-primary);
       font-family: inherit;
-      font-size: 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
+      min-height: 36px;
     }
 
     .btn:hover {
-      background: var(--bg-secondary);
-      border-color: var(--text-secondary);
+      background: var(--gray-100);
+      border-color: var(--gray-500);
     }
 
+    .btn:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--blue);
+      border-color: var(--blue);
+    }
+
+    .btn:disabled {
+      background: var(--gray-300);
+      color: var(--gray-500);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* Primary CTA - Red */
     .btn.primary {
-      background: var(--accent-group);
-      color: #000;
-      border-color: var(--accent-group);
+      background: var(--red);
+      color: var(--white);
+      border-color: var(--red);
     }
 
     .btn.primary:hover {
-      filter: brightness(1.1);
+      background: #B91C1C; /* 10% darker red */
+      border-color: #B91C1C;
+    }
+
+    .btn.primary:active {
+      background: #991B1B; /* 20% darker red */
+    }
+
+    /* Secondary CTA - Orange */
+    .btn.secondary {
+      background: var(--orange);
+      color: var(--white);
+      border-color: var(--orange);
+    }
+
+    .btn.secondary:hover {
+      background: #EA580C; /* 10% darker orange */
+      border-color: #EA580C;
+    }
+
+    .btn.secondary:active {
+      background: #C2410C; /* 20% darker orange */
     }
 
     .state-display {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: var(--bg-primary);
+      margin-top: var(--space-md);
+      padding: var(--space-md);
+      background: var(--gray-100);
       border: 1px solid var(--border);
-      font-size: 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
     }
 
     .state-display .label {
       color: var(--text-secondary);
-      font-size: 0.65rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-sm);
+      font-weight: 500;
     }
 
     .state-display .value {
       font-size: 1rem;
       font-weight: 600;
+      color: var(--text-primary);
     }
 
     .cayley-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.7rem;
-      margin-top: 1rem;
+      font-size: 0.75rem;
+      margin-top: var(--space-md);
     }
 
     .cayley-table th,
     .cayley-table td {
       border: 1px solid var(--border);
-      padding: 0.5rem;
+      padding: var(--space-sm);
       text-align: center;
     }
 
     .cayley-table th {
-      background: var(--bg-secondary);
+      background: var(--gray-100);
       color: var(--text-secondary);
+      font-weight: 600;
     }
 
     .cayley-table td {
-      background: var(--bg-primary);
+      background: var(--white);
     }
 
     .cayley-table td.highlight {
-      background: var(--accent-group);
-      color: #000;
+      background: var(--orange); /* Use orange for highlights, not red */
+      color: var(--white);
+      font-weight: 600;
     }
 
     .history-list {
-      margin-top: 1rem;
+      margin-top: var(--space-md);
       max-height: 150px;
       overflow-y: auto;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
     }
 
     .history-item {
-      padding: 0.4rem 0.6rem;
+      padding: var(--space-sm) var(--space-md);
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       color: var(--text-secondary);
+      background: var(--white);
+    }
+
+    .history-item:hover {
+      background: var(--gray-100);
     }
 
     .history-item:last-child { border-bottom: none; }
@@ -278,14 +374,15 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 2px;
       width: fit-content;
-      padding: 0.5rem;
+      padding: var(--space-sm);
       background: var(--border);
-      margin: 0.5rem 0;
+      margin: var(--space-sm) 0;
+      border-radius: var(--radius-sm);
     }
 
     .matrix-display span {
-      background: var(--bg-primary);
-      padding: 0.5rem;
+      background: var(--white);
+      padding: var(--space-sm);
       text-align: center;
       min-width: 3rem;
     }
@@ -306,37 +403,38 @@
     }
 
     .amidakuji-svg line {
-      stroke: var(--text-secondary);
+      stroke: var(--gray-500);
       stroke-width: 2;
     }
 
     .amidakuji-svg line.bridge {
-      stroke: var(--accent-category);
+      stroke: var(--orange); /* Use orange for secondary highlights */
       stroke-width: 3;
     }
 
     .amidakuji-svg circle {
-      fill: var(--accent-category);
+      fill: var(--orange);
     }
 
     .amidakuji-svg text {
       fill: var(--text-primary);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 14px;
     }
 
     .permutation-display {
       display: flex;
-      gap: 1rem;
+      gap: var(--space-md);
       align-items: center;
       justify-content: center;
-      padding: 1rem;
-      background: var(--bg-primary);
-      margin-top: 1rem;
+      padding: var(--space-md);
+      background: var(--gray-100);
+      margin-top: var(--space-md);
+      border-radius: var(--radius-sm);
     }
 
     .perm-arrow {
-      color: var(--accent-category);
+      color: var(--orange);
     }
 
     .field-grid {
@@ -344,39 +442,50 @@
       gap: 2px;
       background: var(--border);
       padding: 2px;
+      border-radius: var(--radius-sm);
     }
 
     .field-cell {
-      background: var(--bg-primary);
+      background: var(--white);
       aspect-ratio: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 0.875rem;
       cursor: pointer;
       transition: all 0.2s ease;
+      min-height: 44px; /* Accessibility - min touch target */
     }
 
     .field-cell:hover {
-      background: var(--bg-secondary);
+      background: var(--gray-100);
+    }
+
+    .field-cell:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--blue);
     }
 
     .field-cell.selected {
-      background: var(--accent-ring);
-      color: #000;
+      background: var(--blue);
+      color: var(--white);
+      font-weight: 600;
     }
 
     .field-cell.result {
-      background: var(--accent-group);
-      color: #000;
+      background: var(--green); /* Use green for success/result states */
+      color: var(--white);
+      font-weight: 600;
     }
 
     .operation-display {
       text-align: center;
-      padding: 1rem;
-      font-size: 1.2rem;
-      background: var(--bg-primary);
-      margin-top: 1rem;
+      padding: var(--space-md);
+      font-size: 1rem;
+      background: var(--gray-100);
+      margin-top: var(--space-md);
+      border-radius: var(--radius-sm);
+      font-weight: 500;
     }
 
     .icosahedron-container {
@@ -385,57 +494,76 @@
     }
 
     .rep-info {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: var(--bg-primary);
+      margin-top: var(--space-md);
+      padding: var(--space-md);
+      background: var(--gray-100);
       border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
     }
 
     .rep-info h4 {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
       color: var(--text-secondary);
-      margin-bottom: 0.5rem;
+      margin-bottom: var(--space-sm);
+      font-weight: 600;
     }
 
     .concept-card {
-      background: var(--bg-secondary);
+      background: var(--gray-100);
       border: 1px solid var(--border);
-      padding: 1rem;
-      margin-top: 1rem;
+      border-radius: var(--radius-sm);
+      padding: var(--space-md);
+      margin-top: var(--space-md);
     }
 
     .concept-card h4 {
-      font-size: 0.8rem;
-      margin-bottom: 0.5rem;
-      color: var(--accent-category);
+      font-size: 0.875rem;
+      margin-bottom: var(--space-sm);
+      color: var(--text-primary);
+      font-weight: 600;
     }
 
     .concept-card p {
-      font-size: 0.75rem;
+      font-size: 0.875rem;
       color: var(--text-secondary);
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .slider-container {
-      margin-top: 1rem;
+      margin-top: var(--space-md);
     }
 
     .slider-container label {
       display: block;
-      font-size: 0.7rem;
+      font-size: 0.875rem;
       color: var(--text-secondary);
-      margin-bottom: 0.5rem;
+      margin-bottom: var(--space-sm);
+      font-weight: 500;
     }
 
     .slider-container input[type="range"] {
       width: 100%;
-      accent-color: var(--accent-ring);
+      accent-color: var(--blue);
+      height: 6px;
+      cursor: pointer;
+    }
+
+    .slider-container input[type="range"]:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--blue);
     }
 
     .full-width {
       grid-column: 1 / -1;
+    }
+
+    /* Playground grid spacing update */
+    .playground-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-xl);
     }
   </style>
 </head>
@@ -457,7 +585,7 @@
   <!-- GROUPS PANEL -->
   <section class="panel active" id="groups">
     <h2 class="section-title">
-      <span class="icon" style="background: var(--accent-group)"></span>
+      <span class="icon"></span>
       Group Theory: D₄ Symmetries
     </h2>
     <p class="section-desc">
@@ -488,7 +616,7 @@
 
       <div class="card">
         <h3>Cayley Table (Partial)</h3>
-        <p style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: var(--space-md);">
           Row ∘ Column = Result. Notice: r1 ∘ fv ≠ fv ∘ r1 (non-abelian!)
         </p>
         <table class="cayley-table" id="cayley-table">
@@ -510,7 +638,7 @@
   <!-- RINGS & FIELDS PANEL -->
   <section class="panel" id="rings">
     <h2 class="section-title">
-      <span class="icon" style="background: var(--accent-ring)"></span>
+      <span class="icon"></span>
       Rings & Fields: Modular Arithmetic
     </h2>
     <p class="section-desc">
@@ -557,7 +685,7 @@
   <!-- CATEGORIES PANEL -->
   <section class="panel" id="categories">
     <h2 class="section-title">
-      <span class="icon" style="background: var(--accent-category)"></span>
+      <span class="icon"></span>
       Category Theory: Amidakuji
     </h2>
     <p class="section-desc">
